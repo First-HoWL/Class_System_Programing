@@ -39,27 +39,27 @@ namespace SnakeGame
         public static void Main(string[] args)
         {
 
-            var result = MessageBox(IntPtr.Zero, "Does it move?", "Message", 4 | MB_ICONQUESTION);
+            var result = MessageBox(IntPtr.Zero, "Does it move?", "Message", MB_YESNO | MB_ICONQUESTION);
             Console.WriteLine(result);
-            if (result == 6) { 
-                result = MessageBox(IntPtr.Zero, "Should it?", "Message", 4 | MB_ICONQUESTION);
-                if (result == 6)
+            if (result == IDYES) { 
+                result = MessageBox(IntPtr.Zero, "Should it?", "Message", MB_YESNO | MB_ICONQUESTION);
+                if (result == IDYES)
                 {
                     Environment.Exit(0);
                 }
-                if (result == 7)
+                if (result == IDNO)
                 {
-                    MessageBox(IntPtr.Zero, "Problem!", "Message", 0 | MB_ICONWARNING);
+                    MessageBox(IntPtr.Zero, "Problem!", "Message", MB_OK | MB_ICONWARNING);
                 }
             }
-            else if (result == 7)
+            else if (result == IDNO)
             {
-                result = MessageBox(IntPtr.Zero, "Should it?", "Message", 4 | MB_ICONQUESTION);
-                if (result == 6)
+                result = MessageBox(IntPtr.Zero, "Should it?", "Message", MB_YESNO | MB_ICONQUESTION);
+                if (result == IDYES)
                 {
-                    MessageBox(IntPtr.Zero, "Problem!", "Message", 0 | MB_ICONWARNING);
+                    MessageBox(IntPtr.Zero, "Problem!", "Message", MB_OK | MB_ICONWARNING);
                 }
-                if (result == 7)
+                if (result == IDNO)
                 {
                     Environment.Exit(0);
                 }
