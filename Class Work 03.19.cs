@@ -39,6 +39,7 @@ namespace Game
         }
         public static void Main(string[] args)
         {
+            /*
             List<Process> processList = new List<Process>();
             Console.WriteLine("With what command do you want help?");
             string b = Console.ReadLine();
@@ -55,7 +56,42 @@ namespace Game
             string text = a.StandardOutput.ReadToEnd();
             Console.WriteLine($"Process output: \n{text}");
             a.Close();
+            */
+            //for (int i = 0; i < 5; i++)
+            //{
+            //    processList.Add(Process.Start("notepad.exe"));
+            //    Console.WriteLine($"Процес {processList.Last().ProcessName} запущенно!");
+            //}
+            //while (processList.Count > 0) { 
+            //    foreach(Process process in processList.ToArray())
+            //    {
+            //        if (process.HasExited) { 
+            //            Console.WriteLine($"Process {process.Id} is gone!");
+            //            processList.Remove(process);
+            //        }
+            //    }
+            //}
 
+            List<Process> processList = new List<Process>();
+            do
+            {
+                Console.Clear();
+                foreach (Process process in Process.GetProcesses())
+                {
+                    //Console.WriteLine($"{process.Id} - {process.ProcessName}");
+                    processList.Add(process);
+                }
+                bubble_sort(processList, processList.Count());
+                foreach (Process process in processList)
+                {
+                    Console.WriteLine($"{process.Id} - {process.ProcessName}");
+                    //processList.Add(process);
+                }
+                Thread.Sleep(3000);
+                processList = new List<Process>();
+            } while (true);
+
+            //Console.WriteLine($"Всі процеси завершено!");
         }
     }
 }
