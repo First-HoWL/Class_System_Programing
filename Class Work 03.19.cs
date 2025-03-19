@@ -17,7 +17,7 @@ namespace Game
 
     class Program
     {
-
+        
         public static void bubble_sort(List<Process> array, int len)
         {
             bool is_changed = true;
@@ -40,16 +40,22 @@ namespace Game
         public static void Main(string[] args)
         {
             List<Process> processList = new List<Process>();
-            
-            foreach (Process process in Process.GetProcesses())
+            Console.WriteLine("With what command do you want help?");
+            string b = Console.ReadLine();
+            ProcessStartInfo startInfo = new ProcessStartInfo 
             {
-                processList.Add(process);
-            }
-            bubble_sort(processList, processList.Count());
-            foreach (Process process in processList)
-            {
-                Console.WriteLine($"{process.Id} - {process.ProcessName}");
-            }
+                FileName = "cmd.exe",
+                Arguments = $"/c help {b}",
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+            };
+            Process a = Process.Start(startInfo);
+            string text = a.StandardOutput.ReadToEnd();
+            Console.WriteLine($"Process output: \n{text}");
+            a.Close();
+
         }
     }
 }
