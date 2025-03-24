@@ -138,50 +138,56 @@ namespace Game
             list.AddRange(list_more);
         }
 
-        public static void Main(string[] args)
+        static int sum1;
+        static int sum2;
+
+        public static void mySum(List<int> list)
         {
-            List<int> list = new List<int>();
+            List<int> list1 = new List<int>();
             List<int> list2 = new List<int>();
-            List<int> list3 = new List<int>();
-            Random rnd = new Random();  
-            for (int i = 0; i < 20000; i++) {
-                int a = rnd.Next(1, 100);
-                list.Add(a);
-                list2.Add(a);
-                list3.Add(a);
+
+            for (int i = 0;i < list.Count() / 2;i++) 
+            { 
+                list1.Add(list[i]); 
+            }
+            for (int i = list.Count() / 2; i < list.Count(); i++)
+            {
+                list2.Add(list[i]);
             }
 
+            Thread thread1 = new Thread(() => sum1 = list1.Sum());
+            Thread thread2 = new Thread(() => sum2 = list2.Sum());
 
-            //for (int i = 0; i < list.Count; i++)
-            //{
-            //    Console.Write(list[i] + ", ");
-            //}
-
-            Console.WriteLine();
-
-            Stopwatch sw = Stopwatch.StartNew();
-            Thread thread1 = new Thread(() => QuickSort(list));
             thread1.Start();
+            thread2.Start();
+
             thread1.Join();
-            sw.Stop();
-
-            Stopwatch sw1 = Stopwatch.StartNew();
-            bubble_sort(list2, list2.Count());
-            sw1.Stop();
-
-            Stopwatch sw2 = Stopwatch.StartNew();
-            QuickSortWithoutThread(list3);
-            sw2.Stop();
-
-            //for (int i = 0; i < list.Count; i++)
-            //{
-            //    Console.Write(list[i] + ", ");
-            //}
+            thread2.Join();
             Console.WriteLine();
-            Console.WriteLine("Quick sort: " + sw);
-            Console.WriteLine("Buble sort: " + sw1);
-            Console.WriteLine("Quick sort without threading: " + sw2);
-            
+            Console.WriteLine("Sum: " + (sum1 + sum2));
+        }
+
+
+        public static void Main(string[] args)
+        {
+
+            List<int> list = new List<int>();
+            Random rnd = new Random();
+            for (int i = 0; i < 1000; i++)
+            {
+                list.Add(rnd.Next(1, 100));
+            }
+            for (int i = 0; i < list.Count; i++)
+            {
+                Console.Write(list[i] + ", ");
+            }
+            Thread thread1 = new Thread(() => mySum(list));
+
+            thread1.Start();
+
+            thread1.Join();
+
+
 
         }
     }
