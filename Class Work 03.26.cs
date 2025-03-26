@@ -67,13 +67,13 @@ namespace Game
         
         static void goCar(Car car)
         {
-            while (car.range < 10000)
+            while (car.range < 200)
             {
                 Thread.Sleep(500);
                 car.Addrange();
                 car.NewSpeed();
             }
-
+            car.CurentSpeed = 0;
         }
 
         public static void Main(string[] args)
@@ -103,7 +103,7 @@ namespace Game
                 foreach (var item in cars)
                 {
                     Console.ForegroundColor = item.color;
-                    Console.WriteLine($" {item.id, 3} | {item.CurentSpeed, 5}km/h | {Math.Round(item.range / 1000, 2), 7} / 10 km");
+                    Console.WriteLine($" {item.id, 3} | {item.CurentSpeed, 5}km/h | {Math.Round(item.range / 1000, 2), 7} / 0.2 km");
                     Console.ResetColor();
                 }
                 Console.SetCursorPosition(0, 0);
