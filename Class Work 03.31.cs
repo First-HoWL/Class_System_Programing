@@ -153,7 +153,7 @@ namespace Game
             Console.WriteLine($"Car {CarName,7} | waiting before going on gas station");
             semaphore.WaitOne();
             int a = rnd.Next(3000, 8000);
-            Console.WriteLine($"Car {CarName, 7} | {rnd.Next(3000, 7000) / 1000, 7} s. | is on gas station");
+            Console.WriteLine($"Car {CarName, 7} | {a / 1000, 7} s. | is on gas station");
             Thread.Sleep(a);
             Console.WriteLine($"Car {CarName, 7} | is going from gas station");
             semaphore.Release();
