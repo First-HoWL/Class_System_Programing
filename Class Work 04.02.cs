@@ -15,77 +15,124 @@ namespace Game
 {
 
 
-    class Car
-    {
-        public int id { get; set; }
-        public int speed { get; set; }
-        public int CurentSpeed { get; set; }
-        public ConsoleColor color { get; set; }
-        public int infelicity { get; set; }
-        public double range { get; set; }
-
-        public void NewSpeed()
-        {
-            Random random = new Random();
-            if (random.Next(1, 3) == 1)
-            {
-                this.CurentSpeed = speed + random.Next(1, infelicity);
-            }
-            else
-            {
-                this.CurentSpeed = speed - random.Next(1, infelicity);
-            }
-        }
-
-        public void Addrange()
-        {
-            this.range += ((this.CurentSpeed * 1000) / 7200);
-        }
-
-        public Car(int id, int speed, ConsoleColor color, int infelicity)
-        {
-            this.range = 0;
-            this.color = color;
-            this.infelicity = infelicity;
-            this.id = id;
-            this.speed = speed;
-            this.CurentSpeed = 0;
-        }
-
-
-    }
-
-
-
-
-
+    
     class Program
     {
         static readonly object lockObj = new object();
-        static List<Car> cars = new List<Car>();
         static Random rnd = new Random();
         static List<Thread> list_threads = new List<Thread>();
+        static SemaphoreSlim semaphore = new SemaphoreSlim(1000, 1000);
 
         static void ProcessPeople(object Name)
         {
-            Console.WriteLine($"Men {Name,4} | {"waiting before going on stadium", 35} | {semaphore.CurrentCount} places");
+            Console.WriteLine($"Men {Name,4} | {"waiting before going on stadium",35} | {semaphore.CurrentCount} places");
             semaphore.Wait();
             int a = rnd.Next(3000, 8000);
-            Console.WriteLine($"Men {Name,4} | {$" | {a / 1000,7} s. | is on stadium", 35} | {semaphore.CurrentCount} places");
+            Console.WriteLine($"Men {Name,4} | {$" | {a / 1000,7} s. | is on stadium",35} | {semaphore.CurrentCount} places");
             Thread.Sleep(a);
-            Console.Write($"Men {Name,4} | {"is going from stadium", 35} | ");
+            Console.Write($"Men {Name,4} | {"is going from stadium",35} | ");
             semaphore.Release();
             Console.WriteLine($"{semaphore.CurrentCount} places");
 
         }
 
+        static void code(int a)
+        {
+            string b = "";
+            for (int i = 1; i < 11; i++)
+            {
+                b += $"{i * a,3} | ";
+            }
+            b += "\b\b ";
+            Console.WriteLine(b);
+        }
 
+        static int sum(List<int> list)
+        {
+            int a = 0;
+            for(int i = 0; i < list.Count(); i++)
+            {
+                a += list[i];
+            }
+            return a;
+        }
 
+        static double avg(List<int> list)
+        {
+            double a = 0;
+            for (int i = 0; i < list.Count(); i++)
+            {
+                a += list[i];
+            }
+            return a / list.Count();
+        }
+        static int min(List<int> list)
+        {
+            int a = list[0];
+            for (int i = 0; i < list.Count(); i++)
+            {
+                if (a > list[i])
+                {
+                    a = list[i];
+                } 
+            }
+            return a;
+        }
+        static int max(List<int> list)
+        {
+            int a = list[0];
+            for (int i = 0; i < list.Count(); i++)
+            {
+                if (a < list[i])
+                {
+                    a = list[i];
+                }
+            }
+            return a;
+        }
 
-        static SemaphoreSlim semaphore = new SemaphoreSlim(1000, 1000);
         public static void Main(string[] args)
         {
 
+            //Parallel.For(1, 11, i => code(i));
+            //for(int i = 1; i < 11; i++) {code(i);}
+
+            List<int> ints = new List<int>();
+
+            for (int i = 0; i < 100000000; i++)
+            {
+                ints.Add(rnd.Next(1, 10000));
+            }
+
+
+            Parallel.Invoke(() => {
+                Stopwatch sw = Stopwatch.StartNew();
+                int a = sum(ints);
+                sw.Stop();
+                Console.WriteLine($"sum: {a, 20} | {sw.ElapsedMilliseconds}");
+            },
+            () => {
+                Stopwatch sw1 = Stopwatch.StartNew();
+                double b = avg(ints);
+                sw1.Stop();
+                Console.WriteLine($"avg: {b,20} | {sw1.ElapsedMilliseconds}");
+            },
+            () => {
+                Stopwatch sw2 = Stopwatch.StartNew();
+                int c = min(ints);
+                sw2.Stop();
+                Console.WriteLine($"min: {c,20} | {sw2.ElapsedMilliseconds}");
+            },
+            () => {
+                Stopwatch sw3 = Stopwatch.StartNew();
+                int d = max(ints);
+                sw3.Stop();
+                Console.WriteLine($"max: {d,20} | {sw3.ElapsedMilliseconds}");
+            }
+            );
+
+
+            //Parallel.For(1, 11, a => { Parallel.For(1, 11, i => { Console.WriteLine($"[{a}] {a} * {i} = {a * i}"); }); });
             /*int Balance = 1000;
 
             Thread a = new Thread(() => Threads());
@@ -120,24 +167,28 @@ namespace Game
                     }
                 }
             }*/
-            int i = 00000;
-            Thread thread = new Thread(() => { 
-                while (true) 
-                { 
-                    Console.ForegroundColor = ConsoleColor.Green;
-                    Console.WriteLine($"{1000 - semaphore.CurrentCount} people");
-                    Console.ResetColor();
-                    Thread.Sleep(10000);
-                } 
-            });
-            thread.Start();
-            while (true) {
-                for (int j = 0; j < rnd.Next(1, 30); j++) { 
-                    Thread trainTread = new Thread(ProcessPeople);
-                    trainTread.Start($"{i++ + 1}");
-                }
-                Thread.Sleep(rnd.Next(100, 4000));
-            }
+            //int i = 00000;
+            //Thread thread = new Thread(() => {
+            //    while (true)
+            //    {
+            //        Console.ForegroundColor = ConsoleColor.Green;
+            //        Console.WriteLine($"{1000 - semaphore.CurrentCount} people");
+            //        Console.ResetColor();
+            //        Thread.Sleep(10000);
+            //    }
+            //});
+
+            //thread.Start();
+            //while (true)
+            //{
+            //    /*for (int j = 0; j < rnd.Next(1, 30); j++)
+            //    {
+            //        Thread trainTread = new Thread(ProcessPeople);
+            //        trainTread.Start($"{i++ + 1}");
+            //    }*/
+            //    Parallel.For(1, rnd.Next(1, 30), i => ProcessPeople($"{i + 1}"));
+            //    Thread.Sleep(rnd.Next(100, 4000));
+            //}
         }
     }
 }
