@@ -99,11 +99,12 @@ namespace Game
                         Console.ForegroundColor = ForegroundColor;
                         for (int h = 0; h < messages.Length; h++)
                         {
-                            if (i + 2 == to.X)
+                            if (i == to.X - from.X)
                             {
                                 i = 0;
                                 j++;
                             }
+                            
                             if (messages[h] == '\n')
                             {
                                 i = 0;
@@ -151,12 +152,16 @@ namespace Game
         {
             lock (lockMessages)
             {
-                if (text.Count() > to.Y - from.Y)
+                if (text.Count() >= to.Y - from.Y - 1)
                 {
                     text.Remove(text[0]);
                 }
                 while (message.Length > to.X - from.X)
                 {
+                    if (text.Count() >= to.Y - from.Y - 1)
+                    {
+                        text.Remove(text[0]);
+                    }
                     string a = "";
                     for (int i = 0; i < to.X - from.X; i++)
                     {
@@ -164,6 +169,7 @@ namespace Game
                         message = message.Remove(0, 1);
                     }
                     text.Add(a);
+                    a = "";
                 }
 
                 text.Add(message + "\n");
@@ -174,13 +180,14 @@ namespace Game
         {
             lock (lockMessages)
             {
-                if (text.Count() > to.Y - from.Y)
-                {
-                    text.Remove(text[0]);
-
-                }
+                
                 while (message.Length > to.X - from.X)
                 {
+                    if (text.Count() > to.Y - from.Y)
+                    {
+                        text.Remove(text[0]);
+
+                    }
                     string a = "";
                     for (int i = 0; i < to.X - from.X; i++)
                     {
@@ -191,7 +198,7 @@ namespace Game
                     text.Add(a);
                     a = "";
                 }
-                if (text.Last().Length + message.Length < to.X - from.X)
+                if (text.Last().Length + message.Length < to.X - from.X && text.Last()[text.Last().Length - 1] != '\n')
                 {
                     text[text.Count() - 1] = text.Last() + message;
                 }
@@ -209,8 +216,8 @@ namespace Game
         private int maxConcurrentCopies = 2;
         static readonly object lockObj = new object();
         static readonly object lockMessages = new object();
-        static ConsoleWindow Window = new ConsoleWindow(new Point(40, 0), new Point(80, 20), lockObj, new object(), ConsoleColor.White);
-        static ConsoleWindow Window2 = new ConsoleWindow(new Point(0, 0), new Point(38, 20), lockObj, new object());
+        static ConsoleWindow Window = new ConsoleWindow(new Point(40, 0), new Point(100, 20), lockObj, new object(), ConsoleColor.White, ConsoleColor.Green);
+        static ConsoleWindow Window2 = new ConsoleWindow(new Point(0, 0), new Point(38, 20), lockObj, new object(), ConsoleColor.Black, ConsoleColor.Yellow);
 
 
         public SmartBackup()
@@ -263,7 +270,7 @@ namespace Game
             string str = "";
             string text = "";
             
-            Window2.WriteLine("Що ви хочете змінити?");
+            Window2.WriteLine("\nЩо ви хочете змінити?");
             Window2.WriteLine("1. Директорію з якої копіюєтся");
             Window2.WriteLine("2. Директорію в яку копіюєтся");
             Window2.WriteLine("3. Режим (1 - регулярний, 2 - при зміні)");
@@ -272,7 +279,7 @@ namespace Game
             str = Console.ReadLine();
             
 
-            Window2.Write(">> ");
+            Window2.Write("\n>> ");
             text = Console.ReadLine();
             var dir = directories[index];
             directories.RemoveAt(index);
@@ -291,11 +298,17 @@ namespace Game
                     }
                 case "3":
                     {
-                        AddDirectory(dir.SourcePath, dir.DestinationPath, (BackupMode)(Convert.ToInt32(text) - 1));
+                        int interval = 60;
+                        if (Convert.ToInt32(text) == 1)
+                        {
+                            Window2.Write("\nІнтервал у секундах: ");
+                            interval = Convert.ToInt32(Console.ReadLine());
+                        }
+                        AddDirectory(dir.SourcePath, dir.DestinationPath, (BackupMode)(Convert.ToInt32(text) - 1), interval);
                         break;
                     }
             }
-            Console.Clear();
+            Window2.Clear();
             return true;
         }
         private void StartCopy(string filePath, string destinationDir)
@@ -411,12 +424,13 @@ namespace Game
                     Window.DrawBackground();
                     while (true)
                     {
+                        Window.DrawBackground();
                         Window.Draw();
                         lock (lockObj)
                         {
                             Console.SetCursorPosition(0, 25);
                         }
-                        Thread.Sleep(700);
+                        Thread.Sleep(1400);
                     }
                 },
                 () =>
