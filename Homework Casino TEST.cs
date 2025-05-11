@@ -1,127 +1,113 @@
+using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading;
-using System;
-using System.IO;
-using System.Net.NetworkInformation;
-using System.Reflection.Metadata;
-using System.Diagnostics;
-using System.Drawing;
-using System.Runtime.CompilerServices;
-using System.Text.Json;
-using Game;
-using System.Runtime.InteropServices;
-using System.Diagnostics;
-using System.Data.SqlTypes;
 
-
-
-
-namespace Game
+class PlayerResult
 {
+    public string Name { get; set; }
+    public int StartMoney { get; set; }
+    public int EndMoney { get; set; }
+}
 
-    class player
+class Program
+{
+    static Semaphore tableSemaphore = new Semaphore(5, 5);
+    static object locker = new object();
+    static List<PlayerResult> results = new List<PlayerResult>();
+    static int playerNumber = 1;
+    static Random random = new Random();
+    static int totalPlayers;
+
+    static void Main()
     {
-        public int money;
-        public bool ready;
-        public bool newPlayer;
-        public int chosen;
-        public int call;
-        public player(int money) 
-        { 
-            this.money = money;
-            this.newPlayer = true;
+        Console.OutputEncoding = UTF8Encoding.UTF8;
+        Console.InputEncoding = UTF8Encoding.UTF8;
+        totalPlayers = random.Next(20, 101);
+        Console.WriteLine($"Сьогодні до казино завітає {totalPlayers} гравців.\n");
+
+        List<Thread> threads = new List<Thread>();
+
+       
+        for (int i = 0; i < totalPlayers; i++)
+        {
+            Thread t = new Thread(PlayerThread);
+            threads.Add(t);
+            t.Start();
         }
 
-        public void SetSector(int sector)
+        
+        foreach (Thread t in threads)
         {
-            if (sector == chosen)
+            t.Join();
+        }
+
+        
+        Console.WriteLine("\nЗвіт про результати дня");
+        foreach (var result in results)
+        {
+            Console.WriteLine($"{result.Name} [початкова сума: {result.StartMoney}] [кінцева сума: {result.EndMoney}]");
+        }
+
+        Console.WriteLine("\nДень у казино завершено.");
+    }
+
+    static void PlayerThread()
+    {
+        
+        int number;
+        lock (locker)
+        {
+            number = playerNumber++;
+        }
+
+        string playerName = $"Гравець {number}";
+        int money = random.Next(500, 2001); 
+        int startMoney = money;
+
+        
+        tableSemaphore.WaitOne();
+
+        Console.WriteLine($"{playerName} сів за стіл зі {money} грн.");
+
+        while (money > 0)
+        {
+            int bet = random.Next(Math.Min(50, money), Math.Min(501, money + 1)); 
+            int chosenNumber = random.Next(0, 37); 
+            int ballNumber = random.Next(0, 37);
+
+            Console.WriteLine($"{playerName} ставить {bet} грн на {chosenNumber}. Кулька випала на {ballNumber}.");
+
+            if (chosenNumber == ballNumber)
             {
-                money += call * 2;
-                newPlayer = false;
-                ready = false;
-                chosen = -1;
-                call = 0;
+                money += bet;
+                Console.WriteLine($"Ура! {playerName} виграв! Нова сума: {money} грн.");
             }
             else
             {
-                newPlayer = false;
-                ready = false;
-                chosen = -1;
-                call = 0;
+                money -= bet;
+                Console.WriteLine($"{playerName} програв. Залишилось: {money} грн.");
             }
+
+            Thread.Sleep(300);
         }
 
+        Console.WriteLine($"{playerName} залишає стіл.");
 
-
-    }
-
-    
-
-    class Program
-    {
-        static readonly object lockObj = new object();
-        static Random rnd = new Random();
-        public static int sum1;
-        public static int sum2;
-        static SemaphoreSlim semaphore = new SemaphoreSlim(5, 5);
-        public static int sector;
-        public static bool sectorNew;
-
-
-
-
-
-        public void Player(player players)
+        
+        lock (locker)
         {
-            semaphore.Wait();
-
-            while (players.money != 0)
+            results.Add(new PlayerResult
             {
-                players.chosen = rnd.Next(1, 38);
-                players.call = rnd.Next(players.money / 2, players.money);
-                players.money -= players.call;
-                players.ready = true;
-                while (true)
-                {
-                    if (sectorNew == true)
-                    {
-                        players.SetSector(sector);
-
-                        break;
-                    }
-                }
-
-            }
-
-            semaphore.Release();
+                Name = playerName,
+                StartMoney = startMoney,
+                EndMoney = money
+            });
         }
 
-
-
-        public static void Main(string[] args)
-        {
-            Console.InputEncoding = UTF8Encoding.UTF8;
-            Console.OutputEncoding = UTF8Encoding.UTF8;
-
-            /*
-
-            Створіть додаток, що імітує роботу столу казино протягом дня. За столом одночасно можуть сидіти п'ять осіб (п'ять потоків). 
-            Кожен з них має фіксовану суму грошей. Кожен гравець може поставити певну суму на число (сума та число обираються випадково).
-            Якщо кулька рулетки потрапила на число гравця, його сума подвоюється. Якщо ставка не зіграла, гравець втрачає всю поставлену суму.
-            Якщо у гравця закінчилися гроші, він звільняє стіл і його місце займає новий гравець (новий потік). 
-            Загальна кількість потенційних гравців за день обирається випадково, але має знаходитися в діапазоні від 20 до 100.
-            День закінчується, коли усі потенційні гравці побувають за столом і зіграють хоча б один раунд. 
-            Підсумком дня є звіт про усіх гравців наступного формату:
-            Гравець1 [початкова сума] [кінцева сума]
-            Гравець2 [початкова сума] [кінцева сума]
-            Гравець3 [початкова сума] [кінцева сума]
-
-
-            Використовуйте механізми багатопотоковості та синхронізації (Semaphore).
-
-
-            */
-
-        }
+        
+        tableSemaphore.Release();
     }
 }
+
+
